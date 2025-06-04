@@ -1,0 +1,17 @@
+name: hello-world
+version: 1.0.0
+author: Test User
+description: Simple hello world example demonstrating basic TaskHub task structure
+license: MIT
+tags:
+  - example
+  - hello-world
+  - beginner
+dependencies: []
+entry_point: hello.py
+parameters:
+  name:
+    type: string
+    description: Name to greet
+    default: World
+    required: false 

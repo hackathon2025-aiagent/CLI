@@ -1,0 +1,72 @@
+{
+  "mcpServers": {
+    "compliance": {
+      "command": "instant-mcp",
+      "args": [
+        "compliance"
+      ],
+      "description": "Check the codes against the guidance.md file.",
+      "tools": [
+        "read_and_check_compliance"
+      ]
+    },
+    "github": {
+      "command": "instant-mcp",
+      "args": [
+        "github"
+      ],
+      "description": "Compare current state with latest version tag and write release commit messages. Requires ABSOLUTE path to git repository. Use force_commit=true to auto-commit before comparison for cleaner tag comparison.",
+      "tools": [
+        "show_changes_since_latest_tag",
+        "write_release_commit_message"
+      ]
+    },
+    "math_mcp": {
+      "command": "instant-mcp",
+      "args": [
+        "math_mcp"
+      ],
+      "description": "A math server providing basic calculations",
+      "tools": [
+        "calculate",
+        "square_root",
+        "factorial"
+      ]
+    },
+    "text_server": {
+      "command": "instant-mcp",
+      "args": [
+        "text_server"
+      ],
+      "description": "A text processing server providing string manipulation tools",
+      "tools": [
+        "reverse_text",
+        "count_words"
+      ]
+    },
+    "code_metrics": {
+      "command": "instant-mcp",
+      "args": [
+        "code_metrics"
+      ],
+      "description": "Analyze code metrics, complexity, and style",
+      "tools": [
+        "calculate_complexity",
+        "analyze_imports",
+        "check_naming_conventions"
+      ]
+    },
+    "security_checker": {
+      "command": "instant-mcp",
+      "args": [
+        "security_checker"
+      ],
+      "description": "Check code for common security vulnerabilities and issues",
+      "tools": [
+        "check_hardcoded_secrets",
+        "check_sql_injection",
+        "check_file_operations"
+      ]
+    }
+  }
+}

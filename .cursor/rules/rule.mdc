@@ -1,0 +1,85 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# code_review Guidelines
+
+## Description
+Add your task-specific guidelines here.
+
+# Code Review Guidelines
+
+## Description
+These guidelines help ensure consistent, secure, and maintainable code through automated review processes.
+
+## Code Quality Rules
+
+### 1. Complexity
+- Functions should have a cyclomatic complexity of 10 or less
+- Maximum function length: 50 lines
+- Maximum file length: 500 lines
+- Avoid deeply nested code (max nesting: 3 levels)
+
+### 2. Naming Conventions
+- Use snake_case for functions and variables in Python
+- Use PascalCase for class names
+- Use UPPERCASE for constants
+- Choose descriptive names that reflect purpose
+
+### 3. Security Best Practices
+- No hardcoded secrets (passwords, API keys, etc.)
+- Use parameterized queries for SQL operations
+- Validate file paths to prevent traversal attacks
+- Avoid unsafe deserialization (e.g., pickle)
+- Use secure defaults for all configurations
+
+### 4. Code Organization
+- Group related functions together
+- Place imports at the top of the file
+- Order imports: standard library, third-party, local
+- Include docstrings for all public functions
+
+## Examples
+
+### Good Code Example
+```python
+from typing import List, Optional
+import logging
+from datetime import datetime
+
+def calculate_user_metrics(user_id: int) -> Optional[dict]:
+    """Calculate metrics for a specific user.
+    
+    Args:
+        user_id: The ID of the user
+        
+    Returns:
+        Dict containing user metrics or None if user not found
+    """
+    try:
+        metrics = {
+            "last_login": datetime.now(),
+            "activity_score": 95
+        }
+        return metrics
+    except Exception as e:
+        logging.error(f"Error calculating metrics for user {user_id}: {e}")
+        return None
+```
+
+### Bad Code Example
+```python
+def getUserData(id):
+    # Bad: Using string formatting in SQL query
+    sql = "SELECT * FROM users WHERE id = %s" % id
+    
+    # Bad: Hardcoded credentials
+    password = "admin123"
+    
+    # Bad: Unsafe file operations
+    with open("../../data.txt") as f:
+        data = f.read()
+    
+    return data
+```

@@ -1,0 +1,20 @@
+name: clone-task
+version: 1.0.0
+author: Test User
+description: Example task demonstrating how to clone tasks from TaskHub marketplace
+license: MIT
+tags:
+  - example
+  - clone
+  - utility
+dependencies: []
+entry_point: clone.py
+parameters:
+  url:
+    type: string
+    description: URL or path of the task to clone (e.g., user-id/task-name)
+    required: true
+  version:
+    type: string
+    description: Specific version to clone (optional)
+    required: false 
