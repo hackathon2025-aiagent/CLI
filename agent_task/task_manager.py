@@ -168,20 +168,28 @@ print("Hello from {task_name}")
         if target_dir is None:
             target_dir = Path.cwd()
         
-        # Create .cursor directory if it doesn't exist
+        # Create task directory in target location
+        target_task_dir = target_dir / task_name
+        if target_task_dir.exists():
+            raise ValueError(f"Directory '{task_name}' already exists in current location")
+            
+        # Copy entire task directory
+        shutil.copytree(task_dir, target_task_dir)
+        
+        # Also set up .cursor directory for AI assistance
         cursor_dir = target_dir / ".cursor"
         cursor_dir.mkdir(exist_ok=True)
         
-        # Copy rules
+        # Copy rules to .cursor if they exist
         rules_src = task_dir / "rules"
-        rules_dst = cursor_dir / "rules"
         if rules_src.exists():
+            rules_dst = cursor_dir / "rules"
             if rules_dst.exists():
                 shutil.rmtree(rules_dst)
             shutil.copytree(rules_src, rules_dst)
         
         # Handle MCP servers
-        mcp_src = task_dir / "mcp-servers"
+        mcp_src = task_dir / "mcp"
         if mcp_src.exists():
             # Create or load existing MCP config
             mcp_config_path = cursor_dir / "mcp.json"

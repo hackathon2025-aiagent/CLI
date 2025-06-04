@@ -3,6 +3,7 @@ CLI interface for the Task-Specific AI Agent Platform.
 """
 from typing import Any
 import os
+from pathlib import Path
 
 from cleo.application import Application
 from cleo.commands.command import Command
@@ -13,6 +14,7 @@ from rich.tree import Tree
 
 from .task_manager import TaskManager
 from .api import TaskHubAPI
+from .paths import TASKS_DIR
 
 console = Console()
 
@@ -160,8 +162,47 @@ class LoadCommand(Command):
     def handle(self) -> int:
         task_name = self.argument("task_name")
         try:
+            # Get current directory for feedback
+            current_dir = Path.cwd()
+            
             TaskManager.load_task(task_name)
-            self.line(f"Loaded task: <info>{task_name}</info>")
+            
+            # Create tree view of what was loaded
+            tree = Tree(f"[bold cyan]{task_name}/[/]")
+            task_dir = current_dir / task_name
+            
+            # Add files to tree view
+            for item in task_dir.rglob("*"):
+                if item.is_file():
+                    rel_path = item.relative_to(task_dir)
+                    parts = list(rel_path.parts)
+                    
+                    # Navigate to the correct spot in the tree
+                    current = tree
+                    for i, part in enumerate(parts[:-1]):
+                        # Find or create the branch
+                        found = False
+                        for child in current.children:
+                            if str(child.label).endswith(f"{part}/[/]"):
+                                current = child
+                                found = True
+                                break
+                        if not found:
+                            current = current.add(f"[bold yellow]{part}/[/]")
+                    
+                    # Add the file
+                    current.add(f"[bold green]{parts[-1]}[/]")
+            
+            self.line(f"\nLoaded task: <info>{task_name}</info>")
+            self.line(f"Location: {task_dir}")
+            self.line("\nTask structure:")
+            console.print(tree)
+            
+            # Show cursor integration message
+            self.line("\nCursor AI Integration:")
+            self.line("- Rules and MCP servers configured in .cursor directory")
+            self.line("- AI assistance ready to use")
+            
             return 0
         except Exception as e:
             self.line_error(f"Error loading task: {e}")
@@ -236,6 +277,7 @@ class CloneCommand(Command):
     
     clone
         {url : URL or path of the task to clone (e.g., user/task-name)}
+        {--load : Load the task into current directory after cloning}
     """
     
     name = "clone"
@@ -243,15 +285,85 @@ class CloneCommand(Command):
     arguments = [
         argument("url", "URL or path of the task to clone (e.g., user/task-name)")
     ]
+    options = [
+        option("load", "l", "Load the task into current directory after cloning")
+    ]
     
     def handle(self) -> int:
         url = self.argument("url")
+        should_load = self.option("load")
+        
         try:
+            # Clone the task first
             task_name = TaskManager.clone_task(url)
             self.line(f"Cloned task: <info>{task_name}</info>")
+            
+            # If --load flag is set, load the task into current directory
+            if should_load:
+                self.line("\nLoading task into current directory...")
+                
+                # Get current directory for feedback
+                current_dir = Path.cwd()
+                
+                TaskManager.load_task(task_name)
+                
+                # Create tree view of what was loaded
+                tree = Tree(f"[bold cyan]{task_name}/[/]")
+                task_dir = current_dir / task_name
+                
+                # Add files to tree view
+                for item in task_dir.rglob("*"):
+                    if item.is_file():
+                        rel_path = item.relative_to(task_dir)
+                        parts = list(rel_path.parts)
+                        
+                        # Navigate to the correct spot in the tree
+                        current = tree
+                        for i, part in enumerate(parts[:-1]):
+                            # Find or create the branch
+                            found = False
+                            for child in current.children:
+                                if str(child.label).endswith(f"{part}/[/]"):
+                                    current = child
+                                    found = True
+                                    break
+                            if not found:
+                                current = current.add(f"[bold yellow]{part}/[/]")
+                        
+                        # Add the file
+                        current.add(f"[bold green]{parts[-1]}[/]")
+                
+                self.line(f"\nLoaded task: <info>{task_name}</info>")
+                self.line(f"Location: {task_dir}")
+                self.line("\nTask structure:")
+                console.print(tree)
+                
+                # Show cursor integration message
+                self.line("\nCursor AI Integration:")
+                self.line("- Rules and MCP servers configured in .cursor directory")
+                self.line("- AI assistance ready to use")
+            
             return 0
         except Exception as e:
             self.line_error(f"Error cloning task: {e}")
+            return 1
+
+class PathCommand(Command):
+    """
+    Show the path to the task archive directory.
+    
+    path
+    """
+    
+    name = "path"
+    description = "Show the path to the task archive directory"
+    
+    def handle(self) -> int:
+        try:
+            self.line(f"Task archive directory: <info>{TASKS_DIR}</info>")
+            return 0
+        except Exception as e:
+            self.line_error(f"Error showing path: {e}")
             return 1
 
 def create_application() -> Application:
@@ -265,6 +377,7 @@ def create_application() -> Application:
     app.add(ArchiveCommand())
     app.add(PublishCommand())
     app.add(CloneCommand())
+    app.add(PathCommand())
     
     return app
 
