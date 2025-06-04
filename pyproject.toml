@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agent-task"
-version = "0.1.1"
+version = "0.1.2"
 description = "Task-Specific AI Agent Platform for Cursor AI"
 readme = "README.md"
 requires-python = ">=3.8"

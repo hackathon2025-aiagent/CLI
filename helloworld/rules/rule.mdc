@@ -1,4 +1,4 @@
-# TEST Guidelines
+# helloworld Guidelines
 
 ## Description
 Add your task-specific guidelines here.
@@ -10,5 +10,5 @@ Add your task-specific guidelines here.
 ## Examples
 ```python
 # Example code or usage
-print("Hello from TEST")
+print("Hello from helloworld")
 ```
