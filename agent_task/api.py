@@ -78,8 +78,7 @@ class TaskHubAPI:
                 url,
                 params={'files': str(include_files).lower()},
                 headers={
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer your-api-token"
+                    "Content-Type": "application/json"
                 }
             )
             

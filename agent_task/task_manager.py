@@ -379,17 +379,24 @@ Task-specific AI configuration for Cursor AI.
         # Write README.md
         readme_path = task_dir / "README.md"
         with open(readme_path, "w", encoding="utf-8") as f:
-            f.write(task_data["metadata"]["readme"])
+            # Use readme content from task_data, or create a default one if not available
+            readme_content = task_data.get("readme", f"# {task_name}\n\n{task_data.get('description', '')}")
+            f.write(readme_content)
             
         # Write taskhub.yaml
         taskhub_path = task_dir / "taskhub.yaml"
+        # Handle tags that could be either a string or list
+        tags = task_data.get("tags", [])
+        if isinstance(tags, str):
+            tags = tags.split(",") if tags else []
+            
         taskhub_config = {
             "name": task_name,
-            "version": task_data["metadata"]["version"],
-            "description": task_data["metadata"]["description"],
-            "author": task_data["metadata"]["author_name"],
-            "license": task_data["metadata"]["license"],
-            "tags": task_data["metadata"]["tags"].split(",") if task_data["metadata"]["tags"] else []
+            "version": task_data.get("version", "0.1.0"),
+            "description": task_data.get("description", ""),
+            "author": task_data.get("userId", user_id),
+            "license": task_data.get("license", "MIT"),
+            "tags": tags
         }
         with open(taskhub_path, "w", encoding="utf-8") as f:
             yaml.dump(taskhub_config, f)
