@@ -9,6 +9,7 @@ import json
 import re
 import os
 import requests
+import subprocess
 
 from .paths import (
     ensure_app_dirs,
@@ -310,7 +311,7 @@ Task-specific AI configuration for Cursor AI.
         
         # Copy MCP servers if they exist
         if mcp_dir.exists():
-            mcp_dst = app_task_dir / "mcp-servers"
+            mcp_dst = app_task_dir / "mcp"
             if mcp_dst.exists():
                 shutil.rmtree(mcp_dst)
             shutil.copytree(mcp_dir, mcp_dst)
@@ -418,3 +419,51 @@ Task-specific AI configuration for Cursor AI.
                     f.write(content)
                     
         return task_name 
+    
+    @staticmethod
+    def import_task(task_name: str, target_dir: Optional[Path] = None) -> None:
+        """Load a task into the current project.
+        
+        Args:
+            task_name: Name of the task to load
+            target_dir: Directory to load the task into (default: current directory)
+        """
+
+        task_dir = get_task_dir(task_name)
+        if not task_dir.exists():
+            raise ValueError(f"Task '{task_name}' not found")
+        
+        if target_dir is None:
+            target_dir = Path.cwd()
+        
+        # Create .cursor directory if it doesn't exist
+        cursor_dir = target_dir / ".cursor"
+        cursor_dir.mkdir(exist_ok=True)
+        
+        # Copy rules
+        rules_src = task_dir / "rules"
+        rules_dst = cursor_dir / "rules"
+        if rules_src.exists():
+            if rules_dst.exists():
+                shutil.rmtree(rules_dst)
+            shutil.copytree(rules_src, rules_dst)
+        
+        # Handle MCP servers
+        mcp_src = task_dir / "mcp"
+
+        print(f"MCP src: {mcp_src}")
+        print(f"MCP dst: {target_dir}")
+
+        if mcp_src.exists():
+            # Use instant-mcp to configure and export MCP servers
+            try:
+                # Set the MCP servers directory
+                subprocess.run(["instant-mcp", "config:set-target-path", str(mcp_src)], check=True)
+                
+                # Export the configuration to the target directory
+                subprocess.run(["instant-mcp", "export:cursor", "--output", str(target_dir)], check=True)
+                
+            except subprocess.CalledProcessError as e:
+                print(f"Error configuring MCP servers: {e}")
+                raise
+    

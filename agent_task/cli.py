@@ -366,6 +366,30 @@ class PathCommand(Command):
             self.line_error(f"Error showing path: {e}")
             return 1
 
+class ImportCommand(Command):
+    """
+    Import task to current project.
+    
+    import
+        {task_name : Name of the task to import (must exist in tasks directory)}
+    """
+    
+    name = "import"
+    description = "Import task to current project"
+    arguments = [
+        argument("task_name", "Name of the task to import (must exist in tasks directory)")
+    ]
+    
+    def handle(self) -> int:
+        task_name = self.argument("task_name")
+        try:
+            TaskManager.import_task(task_name)
+            self.line(f"Imported task: <info>{task_name}</info>")
+            return 0
+        except Exception as e:
+            self.line_error(f"Error importing task: {e}")
+            return 1
+
 def create_application() -> Application:
     """Create and configure the CLI application."""
     app = Application("agent-task", "0.1.0")
@@ -378,6 +402,7 @@ def create_application() -> Application:
     app.add(PublishCommand())
     app.add(CloneCommand())
     app.add(PathCommand())
+    app.add(ImportCommand())
     
     return app
 
