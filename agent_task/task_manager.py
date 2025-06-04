@@ -9,6 +9,7 @@ import json
 import re
 import os
 import requests
+import subprocess
 
 from .paths import (
     ensure_app_dirs,
@@ -161,6 +162,7 @@ print("Hello from {task_name}")
             task_name: Name of the task to load
             target_dir: Directory to load the task into (default: current directory)
         """
+
         task_dir = get_task_dir(task_name)
         if not task_dir.exists():
             raise ValueError(f"Task '{task_name}' not found")
@@ -181,56 +183,23 @@ print("Hello from {task_name}")
             shutil.copytree(rules_src, rules_dst)
         
         # Handle MCP servers
-        mcp_src = task_dir / "mcp-servers"
+        mcp_src = task_dir / "mcp"
+
+        print(f"MCP src: {mcp_src}")
+        print(f"MCP dst: {target_dir}")
+
         if mcp_src.exists():
-            # Create or load existing MCP config
-            mcp_config_path = cursor_dir / "mcp.json"
-            mcp_config = {
-                "mcpServers": {}
-            }
-            if mcp_config_path.exists():
-                with open(mcp_config_path, 'r', encoding='utf-8') as f:
-                    try:
-                        mcp_config = json.load(f)
-                    except json.JSONDecodeError:
-                        pass
-            
-            # Process each MCP server file
-            for server_file in mcp_src.glob("*.py"):
-                server_name = server_file.stem
+            # Use instant-mcp to configure and export MCP servers
+            try:
+                # Set the MCP servers directory
+                subprocess.run(["instant-mcp", "config:set-target-path", str(mcp_src)], check=True)
                 
-                # Read the server file to extract API schema
-                with open(server_file, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    
-                # Extract server attributes
-                name_match = re.search(r'name\s*=\s*["\']([^"\']+)["\']', content)
-                instructions_match = re.search(r'instructions\s*=\s*["\']([^"\']+)["\']', content)
-                tools_match = re.search(r'tools\s*=\s*\[(.*?)\]', content, re.DOTALL)
+                # Export the configuration to the target directory
+                subprocess.run(["instant-mcp", "export:cursor", "--output", str(target_dir)], check=True)
                 
-                if name_match:
-                    server_name = name_match.group(1)
-                
-                # Create server config
-                server_config = {
-                    "command": "instant-mcp",
-                    "args": [server_name],
-                    "description": instructions_match.group(1) if instructions_match else "",
-                    "tools": []
-                }
-                
-                # Extract tools
-                if tools_match:
-                    tools_str = tools_match.group(1)
-                    tools = [t.strip(' "\'') for t in tools_str.split(',') if t.strip()]
-                    server_config["tools"] = tools
-                
-                # Add to config
-                mcp_config["mcpServers"][server_name] = server_config
-            
-            # Save updated MCP config
-            with open(mcp_config_path, 'w', encoding='utf-8') as f:
-                json.dump(mcp_config, f, indent=2)
+            except subprocess.CalledProcessError as e:
+                print(f"Error configuring MCP servers: {e}")
+                raise
     
     @staticmethod
     def archive_task(task_name: str, remove_current: bool = False) -> None:
@@ -302,7 +271,7 @@ Task-specific AI configuration for Cursor AI.
         
         # Copy MCP servers if they exist
         if mcp_dir.exists():
-            mcp_dst = app_task_dir / "mcp-servers"
+            mcp_dst = app_task_dir / "mcp"
             if mcp_dst.exists():
                 shutil.rmtree(mcp_dst)
             shutil.copytree(mcp_dir, mcp_dst)

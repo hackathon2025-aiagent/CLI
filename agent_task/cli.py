@@ -13,6 +13,7 @@ from rich.tree import Tree
 
 from .task_manager import TaskManager
 from .api import TaskHubAPI
+from .paths import TASKS_DIR, CACHE_DIR, CONFIG_DIR
 
 console = Console()
 
@@ -143,28 +144,28 @@ class TasksCommand(Command):
             self.line_error(f"Error listing tasks: {str(e)}")
             return 1
 
-class LoadCommand(Command):
+class ImportCommand(Command):
     """
     Import task to current project.
     
-    load
-        {task_name : Name of the task to load (must exist in tasks directory)}
+    import
+        {task_name : Name of the task to import (must exist in tasks directory)}
     """
     
-    name = "load"
+    name = "import"
     description = "Import task to current project"
     arguments = [
-        argument("task_name", "Name of the task to load (must exist in tasks directory)")
+        argument("task_name", "Name of the task to import (must exist in tasks directory)")
     ]
     
     def handle(self) -> int:
         task_name = self.argument("task_name")
         try:
             TaskManager.load_task(task_name)
-            self.line(f"Loaded task: <info>{task_name}</info>")
+            self.line(f"Imported task: <info>{task_name}</info>")
             return 0
         except Exception as e:
-            self.line_error(f"Error loading task: {e}")
+            self.line_error(f"Error importing task: {e}")
             return 1
 
 class ArchiveCommand(Command):
@@ -254,6 +255,20 @@ class CloneCommand(Command):
             self.line_error(f"Error cloning task: {e}")
             return 1
 
+class AppDirCommand(Command):
+    """
+    Show application directory locations
+    
+    appdir
+    """
+    
+    name = "appdir"
+    description = "Show application directory locations"
+    
+    def handle(self):
+        self.line("Application directories:")
+        self.line(f"  Tasks directory: <info>{TASKS_DIR}</info>")
+
 def create_application() -> Application:
     """Create and configure the CLI application."""
     app = Application("agent-task", "0.1.0")
@@ -261,10 +276,11 @@ def create_application() -> Application:
     # Register commands
     app.add(InitCommand())
     app.add(TasksCommand())
-    app.add(LoadCommand())
+    app.add(ImportCommand())
     app.add(ArchiveCommand())
     app.add(PublishCommand())
     app.add(CloneCommand())
+    app.add(AppDirCommand())
     
     return app
 

@@ -1,0 +1,1 @@
+from agent_task.cli import create_application
